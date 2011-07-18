@@ -208,7 +208,7 @@ function dropTargetEntered(sourceJoin, targetJoin) {
 }
 
 function dropTargetExited(sourceJoin, targetJoin) {
-	// A dragged object exited a drop target. Log info and restore target scale
+	// A dragged object exited a drop target. Restore target scale and opacity
 	var target = DragManager.drags[DragManager.curDrag.sourceIndex].target;
 	CF.setProperties({join:targetJoin, scale:target.scale, opacity: target.opacity}, 0, 0.25);
 }
@@ -219,12 +219,12 @@ function dropCompleted(sourceJoin, targetJoin) {
 	var target = DragManager.drags[DragManager.lastDrag.sourceIndex].target;
 
 	// Make dragged object shrink to nothing
-	CF.setProperties({join:src.join, scale: 0.01}, 0, 0.2, CF.AnimationCurveEaseOut, function() {
+	CF.setProperties({join:src.join, scale: 0.0}, 0, 0.2, CF.AnimationCurveEaseOut, function() {
 		// Return dragged object to original position and hide it
-		CF.setProperties({join:src.join, x:src.x, y:src.y, opacity:0.0}, 0.0, 0.01, CF.AnimationCurveLinear, function() {
+		CF.setProperties({join:src.join, x:src.x, y:src.y, opacity:0}, 0, 0, CF.AnimationCurveLinear, function() {
 			// Fade in the dragged object at its original position
-			CF.setProperties({join:src.join, opacity:src.opacity, scale:src.scale+0.1}, 0.0, 0.15, CF.AnimationCurveLinear, function() {
-				CF.setProperties({join:src.join, scale:src.scale}, 0.0, 0.15);
+			CF.setProperties({join:src.join, opacity:src.opacity, scale:src.scale+0.1}, 0, 0.15, CF.AnimationCurveLinear, function() {
+				CF.setProperties({join:src.join, scale:src.scale}, 0, 0.15);
 			});
 		});
 	});
