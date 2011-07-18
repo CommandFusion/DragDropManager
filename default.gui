@@ -33,6 +33,7 @@
         <action phase="change" js="DragManager.panGestureUpdated(gesture);" />
         <action phase="end" js="DragManager.panGestureEnded(gesture);" />
       </gesture>
+      <img x="738" y="273" w="241" h="242" j="2" clickthrough="1" refresh="0" l="0" noCache="0" downloadIndicator="0" clearOnURLChange="0">logo.png</img>
       <btn j="1" x="363" y="699" w="298" h="44" t="cfblue2_bottom" href="http://www.commandfusion.com" flip="None" sim="1" l="0" s="1">
         <inactive s="0">visit www.commandfusion.com</inactive>
         <active s="0">visit www.commandfusion.com</active>
@@ -42,7 +43,6 @@
 Download a copy from our website today.</txt>
       <txt j="0" x="232" y="47" w="559" h="192" t="cfblue2_title_c" wrap="True" l="0">iViewer is a powerful home automation app, capable of controlling any ethernet device with full two way feedback processing, logic scripting and a completely customisable user interface.</txt>
       <img x="392" y="268" w="241" h="242" j="1" clickthrough="1" refresh="0" l="0" noCache="0" downloadIndicator="0" clearOnURLChange="0">logo.png</img>
-      <img x="783" y="526" w="241" h="242" j="2" clickthrough="1" refresh="0" l="0" noCache="0" downloadIndicator="0" clearOnURLChange="0">logo.png</img>
     </landscape>
   </page>
 </gui>

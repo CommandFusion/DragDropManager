@@ -11,6 +11,7 @@ var FRAMES_PER_SECOND = 30;
 var DragManager = {
 	drags: [],
 	curDrag: null,
+	lastDrag: null,
 	
 	// Call this function to add support from dragging one object onto another
 	addDrag: function(draggedJoin, dropTarget, enterCallback, exitCallback, dropCallback) {
@@ -24,8 +25,8 @@ var DragManager = {
 		CF.getProperties(draggedJoin, function(srcProps) {
 			CF.getProperties(dropTarget, function(dstProps) {
 				self.drags.push({
-					source: {join:draggedJoin, x:srcProps.x, y:srcProps.y, w:srcProps.w, h:srcProps.h, opacity:srcProps.opacity},
-					target: {join:dropTarget, x:dstProps.x, y:dstProps.y, w:dstProps.w, h: dstProps.h, scale:dstProps.scale},
+					source: {join:draggedJoin, x:srcProps.x, y:srcProps.y, w:srcProps.w, h:srcProps.h, scale:srcProps.scale, opacity:srcProps.opacity},
+					target: {join:dropTarget, x:dstProps.x, y:dstProps.y, w:dstProps.w, h: dstProps.h, scale:dstProps.scale, opacity: dstProps.opacity},
 					enter: enterCallback,
 					exit: exitCallback,
 					drop: dropCallback
@@ -110,9 +111,11 @@ var DragManager = {
 	},
 
 	panGestureStarted: function(gesture) {
+		CF.log("drags.length="+this.drags.length+",gesture.x="+gesture.x+",gesture.y="+gesture.y);
 		this.panGestureEnded(null);
 		for (var i=this.drags.length-1; i>=0; i--) {
 			var src = this.drags[i].source;
+			CF.log("srx.x="+src.x+",srx.y="+src.y+",srx.w="+src.w+",srx.h="+src.h);
 			if (this.pointInBounds(gesture.x, gesture.y, src)) {
 				CF.log("dragging " + src.join);
 				this.curDrag = {
@@ -130,6 +133,7 @@ var DragManager = {
 					opacity: Math.max(0.25, src.opacity / 2),
 					timer: setInterval(this.updateDraggedObject, 1000 / FRAMES_PER_SECOND, this)
 				};
+				this.lastDrag = this.curDrag;
 				CF.setProperties({join:src.join, opacity:this.curDrag.opacity}, 0, 0.25);
 				return;
 			}
@@ -177,12 +181,7 @@ var DragManager = {
 				CF.setProperties({join:src.join, x:src.x, y:src.y, opacity:src.opacity}, 0, 0.5, CF.AnimationCurveEaseOut);
 			} else {
 				// destination found:
-				// Make dragged object shrink to nothing
-				CF.setProperties({join:src.join, scale: 0.1}, 0, 0.2, CF.AnimationCurveEaseOut);
-				// Return dragged object to original position
-				setTimeout(function(){CF.setProperties({join:src.join, x:src.x, y:src.y, opacity:0.0}, 0.0, 0.0, CF.AnimationCurveLinear);}, 200);
-				// Fade in the dragged object at its original position
-				setTimeout(function(){CF.setProperties({join:src.join, opacity:src.opacity, scale:1.0}, 0.0, 0.5);}, 201);
+				// Nothing to do here, all animation must be handled via the drop callback
 			}
 
 			// order is important here. Since the final programmed callback may
@@ -205,22 +204,38 @@ var DragManager = {
 function dropTargetEntered(sourceJoin, targetJoin) {
 	// A dragged object entered a drop target. Log info, and scale up the target
 	CF.log("Drop target entered: source=" + sourceJoin + ", target=" + targetJoin);
-	CF.setProperties({join:targetJoin, scale:1.2}, 0, 0.25);
+	CF.setProperties({join:targetJoin, scale:1.2, opacity:1}, 0, 0.25);
 }
 
 function dropTargetExited(sourceJoin, targetJoin) {
 	// A dragged object exited a drop target. Log info and restore target scale
-	CF.log("Drop target exited: source=" + sourceJoin + ", target=" + targetJoin);
-	CF.setProperties({join:targetJoin, scale:1.0}, 0, 0.25);
+	var target = DragManager.drags[DragManager.curDrag.sourceIndex].target;
+	CF.setProperties({join:targetJoin, scale:target.scale, opacity: target.opacity}, 0, 0.25);
 }
 
 function dropCompleted(sourceJoin, targetJoin) {
 	// A drop was completed: TAKE ACTION HERE!
+	var src = DragManager.drags[DragManager.lastDrag.sourceIndex].source;
+	var target = DragManager.drags[DragManager.lastDrag.sourceIndex].target;
+
+	// Make dragged object shrink to nothing
+	CF.setProperties({join:src.join, scale: 0.01}, 0, 0.2, CF.AnimationCurveEaseOut, function() {
+		// Return dragged object to original position and hide it
+		CF.setProperties({join:src.join, x:src.x, y:src.y, opacity:0.0}, 0.0, 0.0, CF.AnimationCurveLinear, function() {
+			// Fade in the dragged object at its original position
+			CF.setProperties({join:src.join, opacity:src.opacity, scale:1.0}, 0.0, 0.5);
+		});
+	});
+
 	CF.log("Drop COMPLETED: source=" + sourceJoin + ", target=" + targetJoin);
+	// Make the target bounce to signify a valid drop
 	CF.setProperties({join:targetJoin, scale:0.9}, 0, 0.15, CF.AnimationCurveLinear, function() {
 		CF.setProperties({join:targetJoin, scale:1.1}, 0, 0.1, CF.AnimationCurveLinear, function() {
 			CF.setProperties({join:targetJoin, scale:0.95}, 0, 0.08, CF.AnimationCurveLinear, function() {
-				CF.setProperties({join:targetJoin, scale:1.0}, 0, 0.05);
+				CF.setProperties({join:targetJoin, scale:1.0}, 0, 0.05, CF.AnimationCurveLinear, function() {
+					// Always return to the original opacity and scale
+					CF.setProperties({join:targetJoin, opacity:target.opacity, scale: target.scale}, 0, 0.3);
+				});
 			});
 		});
 	});
@@ -233,6 +248,8 @@ function dropCompleted(sourceJoin, targetJoin) {
 // ======================================================================
 
 CF.userMain = function() {
+	CF.log("test");
+	//CF.setProperties({join:"s2", opacity: 0}); 
 	// Create a new drag that allows dragging object s1 onto object s2
 	DragManager.addDrag("s1", "s2", dropTargetEntered, dropTargetExited, dropCompleted);
 };
