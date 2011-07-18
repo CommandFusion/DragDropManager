@@ -221,9 +221,11 @@ function dropCompleted(sourceJoin, targetJoin) {
 	// Make dragged object shrink to nothing
 	CF.setProperties({join:src.join, scale: 0.01}, 0, 0.2, CF.AnimationCurveEaseOut, function() {
 		// Return dragged object to original position and hide it
-		CF.setProperties({join:src.join, x:src.x, y:src.y, opacity:0.0}, 0.0, 0.0, CF.AnimationCurveLinear, function() {
+		CF.setProperties({join:src.join, x:src.x, y:src.y, opacity:0.0}, 0.0, 0.01, CF.AnimationCurveLinear, function() {
 			// Fade in the dragged object at its original position
-			CF.setProperties({join:src.join, opacity:src.opacity, scale:1.0}, 0.0, 0.5);
+			CF.setProperties({join:src.join, opacity:src.opacity, scale:src.scale+0.1}, 0.0, 0.15, CF.AnimationCurveLinear, function() {
+				CF.setProperties({join:src.join, scale:src.scale}, 0.0, 0.15);
+			});
 		});
 	});
 
