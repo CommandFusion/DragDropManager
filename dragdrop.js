@@ -219,7 +219,7 @@ function dropCompleted(sourceJoin, targetJoin) {
 	var target = DragManager.drags[DragManager.lastDrag.sourceIndex].target;
 
 	// Make dragged object shrink to nothing
-	CF.setProperties({join:src.join, scale: 0.0}, 0, 0.2, CF.AnimationCurveEaseOut, function() {
+	CF.setProperties({join:src.join, scale: 0.01}, 0, 0.2, CF.AnimationCurveEaseOut, function() {
 		// Return dragged object to original position and hide it
 		CF.setProperties({join:src.join, x:src.x, y:src.y, opacity:0}, 0, 0, CF.AnimationCurveLinear, function() {
 			// Fade in the dragged object at its original position
@@ -232,8 +232,8 @@ function dropCompleted(sourceJoin, targetJoin) {
 	CF.log("Drop COMPLETED: source=" + sourceJoin + ", target=" + targetJoin);
 	// Make the target bounce to signify a valid drop
 	CF.setProperties({join:targetJoin, scale:0.9}, 0, 0.15, CF.AnimationCurveLinear, function() {
-		CF.setProperties({join:targetJoin, scale:1.1}, 0, 0.1, CF.AnimationCurveLinear, function() {
-			CF.setProperties({join:targetJoin, scale:0.95}, 0, 0.08, CF.AnimationCurveLinear, function() {
+		CF.setProperties({join:targetJoin, scale:1.03}, 0, 0.1, CF.AnimationCurveLinear, function() {
+			CF.setProperties({join:targetJoin, scale:0.96}, 0, 0.08, CF.AnimationCurveLinear, function() {
 				CF.setProperties({join:targetJoin, scale:1.0}, 0, 0.05, CF.AnimationCurveLinear, function() {
 					// Always return to the original opacity and scale
 					CF.setProperties({join:targetJoin, opacity:target.opacity, scale: target.scale}, 0, 0.3);
@@ -241,6 +241,9 @@ function dropCompleted(sourceJoin, targetJoin) {
 			});
 		});
 	});
+
+	CF.setJoin(targetJoin, 1);
+	setTimeout(function(){CF.setJoin(targetJoin, 0);}, 100);
 }
 
 // userMain runs on startup.
@@ -253,5 +256,5 @@ CF.userMain = function() {
 	CF.log("test");
 	//CF.setProperties({join:"s2", opacity: 0}); 
 	// Create a new drag that allows dragging object s1 onto object s2
-	DragManager.addDrag("s1", "s2", dropTargetEntered, dropTargetExited, dropCompleted);
+	DragManager.addDrag("s1", "d1", dropTargetEntered, dropTargetExited, dropCompleted);
 };
